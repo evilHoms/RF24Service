@@ -6,45 +6,54 @@
 RF24Service::RF24Service(byte CE_PIN, byte CSE_PIN) : RF24(CE_PIN, CSE_PIN) {
     _CE_PIN = CE_PIN;
     _CSE_PIN = CSE_PIN;
-    // _address[][6] = { "1Node", "2Node", "3Node", "4Node", "5Node", "6Node" };
 }
 
 void RF24Service::init(
     byte paLevel,
-    byte dataRate,
+    rf24_datarate_e dataRate,
+    byte payloadSize,
     short delays,
     short retries
 ) {
-    begin(); //активировать модуль
+    while (!begin()) {
+        if (_isDebug) {
+            _isError = true;
+            Serial.println(F("radio hardware is not responding!!"));
+        }
+        
+        delay(1000);
+    }
+    _isError = false;
+
     setRetries(delays, retries);     //(время между попыткой достучаться, число попыток)
+    setPayloadSize(payloadSize);     // максимальный размер пакета, в байтах
+    
     setPALevel (paLevel); //уровень мощности передатчика. На выбор RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH, RF24_PA_MAX
     setDataRate (dataRate); //скорость обмена. На выбор RF24_2MBPS, RF24_1MBPS, RF24_250KBPS
     //должна быть одинакова на приёмнике и передатчике!
     //при самой низкой скорости имеем самую высокую чувствительность и дальность!!
     // ВНИМАНИЕ!!! enableAckPayload НЕ РАБОТАЕТ НА СКОРОСТИ 250 kbps!
 
-    powerUp(); //начать работу
+    powerUp(); // усилить сигнал
 }
 
 void RF24Service::init(
     byte paLevel,
-    byte dataRate
+    rf24_datarate_e dataRate,
+    byte payloadSize
 ) {
-    init(paLevel, dataRate, 0, 15);
+    init(paLevel, dataRate, payloadSize, 0, 15);
+}
+
+void RF24Service::init(
+    byte paLevel,
+    rf24_datarate_e dataRate
+) {
+    init(paLevel, dataRate, 32);
 }
 
 void RF24Service::init() {
-    init(RF24_PA_MAX, RF24_1MBPS, 0, 15);
-}
-
-void RF24Service::withPayload(byte payloadSize) {
-    setAutoAck(1);         //режим подтверждения приёма, 1 вкл 0 выкл
-    enableAckPayload();    //разрешить отсылку данных в ответ на входящий сигнал
-    setPayloadSize(payloadSize);     //размер пакета, в байтах
-}
-
-void RF24Service::withPayload() {
-    withPayload(32);
+    init(RF24_PA_MAX, RF24_1MBPS, 32);
 }
 
 void RF24Service::asTransmitter(byte addressNo) {
@@ -54,18 +63,22 @@ void RF24Service::asTransmitter(byte addressNo) {
 
 void RF24Service::asTransmitter() {
     openWritingPipe(_address[0]);
+    stopListening();
 }
 
-void RF24Service::asReciever(byte pipeNo, byte addressNo) {
-    openReadingPipe(pipeNo, _address[addressNo]);
+void RF24Service::asReciever(byte id, byte addressNo) {
+    openReadingPipe(id, _address[addressNo]);
+    startListening();
 }
 
 void RF24Service::asReciever(byte addressNo) {
     openReadingPipe(1, _address[addressNo]);
+    startListening();
 }
 
 void RF24Service::asReciever() {
     openReadingPipe(1, _address[0]);
+    startListening();
 }
 
 void RF24Service::showDebug() {
@@ -77,6 +90,8 @@ void RF24Service::hideDebug() {
 }
 
 int RF24Service::scanChannels(byte numberOfScanRepeats) {
+    _isScanning = true;
+
     const byte numChannels = 126;
     const byte numberOfScans = numberOfScanRepeats;
     byte values[numChannels] = {0};
@@ -88,7 +103,7 @@ int RF24Service::scanChannels(byte numberOfScanRepeats) {
         
         // Print out header, high then low digit
         for (int i = 0; i < numChannels; i++) {
-            Serial.print(i>>4);
+            Serial.print(i>>4, HEX);
         }
         Serial.println();
         for (int i = 0; i < numChannels; i++) {
@@ -164,6 +179,10 @@ int RF24Service::scanChannels(byte numberOfScanRepeats) {
         }
     }
 
+    if (_isDebug) {
+        Serial.println();
+    }
+
     int resultBestStart = 0;
     if (bestPositionClearLength > 5) {
         resultBestStart = bestPositionStart + 2;
@@ -174,10 +193,25 @@ int RF24Service::scanChannels(byte numberOfScanRepeats) {
     } else {
         return -1;
     }
+
+    _isScanning = false;
+
+    if (_isDebug) {
+        Serial.print("Best channel: ");
+        Serial.println(resultBestStart);
+    }
     
     return resultBestStart;
 }
 
 int RF24Service::scanChannels() {
-    scanChannels(3);
+    return scanChannels(3);
+}
+
+bool RF24Service::isScanning() {
+    return _isScanning;
+}
+
+bool RF24Service::isError() {
+    return _isError;
 }

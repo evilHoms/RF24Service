@@ -17,15 +17,14 @@ class RF24Service: public RF24 {
 
         void init(
             byte paLevel,
-            byte dataRate,
+            rf24_datarate_e dataRate,
+            byte payloadSize,
             short delays,
             short retries
         );
-        void init(byte paLevel, byte dataRate);
+        void init(byte paLevel, rf24_datarate_e dataRate, byte payloadSize);
+        void init(byte paLevel, rf24_datarate_e dataRate);
         void init();
-
-        void withPayload(byte payloadSize);
-        void withPayload();
 
         void asTransmitter(byte addressNo);
         void asTransmitter();
@@ -39,10 +38,15 @@ class RF24Service: public RF24 {
 
         int scanChannels(byte numberOfScanRepeats);
         int scanChannels();
+
+        bool isScanning();
+        bool isError();
     private:
         byte _CE_PIN;
         byte _CSE_PIN;
         bool _isDebug = false;
+        bool _isScanning = false;
+        bool _isError = false;
         byte _address[6][6] = { "1Node", "2Node", "3Node", "4Node", "5Node", "6Node" };
 };
 
