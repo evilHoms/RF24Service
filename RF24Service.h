@@ -36,17 +36,40 @@ class RF24Service: public RF24 {
         void showDebug();
         void hideDebug();
 
+        int scanChannels(byte startChannel, byte endChannel, byte numberOfScanRepeats);
+        int scanChannels(byte startChannel, byte endChannel);
         int scanChannels(byte numberOfScanRepeats);
         int scanChannels();
 
+        byte searchChannel (
+            byte key,
+            byte startChannel,
+            byte endChannel,
+            byte pipeId
+        );
+        byte searchChannel(byte key);
+
         bool isScanning();
         bool isError();
+        bool isConnected();
+
+        void connect();
+        void disconnect();
+
+        void resetFails();
+        void incrementFails();
+        byte fails();
+
+        bool waitForConnection(byte key);
+        bool connectToSearchedChannel(byte key);
     private:
         byte _CE_PIN;
         byte _CSE_PIN;
         bool _isDebug = false;
         bool _isScanning = false;
         bool _isError = false;
+        bool _isConnected = false;
+        byte _failCounter = 0;
         byte _address[6][6] = { "1Node", "2Node", "3Node", "4Node", "5Node", "6Node" };
 };
 
