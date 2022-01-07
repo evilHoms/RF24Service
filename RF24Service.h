@@ -62,6 +62,49 @@ class RF24Service: public RF24 {
 
         bool waitForConnection(byte key);
         bool connectToSearchedChannel(byte key);
+
+        /**
+         * @brief Wrapper over `write`. Same functionality,
+         * but also track request fails counter and response time
+         * 
+         * @param buf 
+         * @param len 
+         * @return true 
+         * @return false 
+         */
+        bool send(const void* buf,	byte len);
+
+        /**
+         * @brief Wrapper over `read`. Same functionality,
+         * but also updates lastRequestTime.
+         * 
+         * @param buf 
+         * @param len 
+         */
+        void get(void* buf, byte len);
+
+        /**
+         * @brief Time from write til got acknoledge.
+         * Is set in `send` method automatically
+         * 
+         * @return unsigned long 
+         */
+        unsigned long lastResponseTime();
+
+        /**
+         * @brief Time from last read.
+         * Is set in `get` method automatically
+         * 
+         * @return unsigned long 
+         */
+        unsigned long lastRequestTimeDiff();
+
+        /**
+         * @brief Set current micros() to _lastRequestTime
+         *
+         */
+        void updateLastRequestTime();
+
     private:
         byte _CE_PIN;
         byte _CSE_PIN;
@@ -70,6 +113,8 @@ class RF24Service: public RF24 {
         bool _isError = false;
         bool _isConnected = false;
         byte _failCounter = 0;
+        unsigned long _responseTime[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        unsigned long _lastRequestTime = 0;
         byte _address[6][6] = { "1Node", "2Node", "3Node", "4Node", "5Node", "6Node" };
 };
 

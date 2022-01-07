@@ -413,3 +413,43 @@ void RF24Service::incrementFails() {
 byte RF24Service::fails() {
     return _failCounter;
 }
+
+bool RF24Service::send(const void* buf,	byte len) {
+    unsigned long startTime = micros(); 
+    bool isAnswered = write(buf, len);
+    unsigned long endTime = micros();
+
+    byte responseTimeLen = sizeof(_responseTime) / sizeof(_responseTime[0]);
+
+    for (byte i = 0; i < responseTimeLen - 1; i++) {
+        _responseTime[i] = _responseTime[i + 1];
+    }
+
+    _responseTime[responseTimeLen - 1] = endTime - startTime;
+
+    if (isAnswered) {
+        resetFails();
+    } else {
+        incrementFails();
+    }
+
+    return isAnswered;
+}
+
+void RF24Service::get(void* buf, byte len) {
+    read(buf, len);
+    updateLastRequestTime();
+}
+
+void RF24Service::updateLastRequestTime() {
+    _lastRequestTime = micros();
+}
+
+unsigned long RF24Service::lastRequestTimeDiff() {
+    return micros() - _lastRequestTime;
+}
+
+unsigned long RF24Service::lastResponseTime() {
+    byte responseTimeLen = sizeof(_responseTime) / sizeof(_responseTime[0]);
+    return _responseTime[responseTimeLen - 1];
+}
