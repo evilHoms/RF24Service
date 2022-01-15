@@ -36,20 +36,20 @@ class RF24Service: public RF24 {
         void showDebug();
         void hideDebug();
 
-        int scanChannels(byte startChannel, byte endChannel, byte numberOfScanRepeats);
-        int scanChannels(byte startChannel, byte endChannel);
-        int scanChannels(byte numberOfScanRepeats);
-        int scanChannels();
+        // int scanChannels(byte startChannel, byte endChannel, byte numberOfScanRepeats);
+        // int scanChannels(byte startChannel, byte endChannel);
+        // int scanChannels(byte numberOfScanRepeats);
+        // int scanChannels();
 
-        byte searchChannel (
-            byte key,
-            byte startChannel,
-            byte endChannel,
-            byte pipeId
-        );
-        byte searchChannel(byte key);
+        // byte searchChannel (
+        //     byte key,
+        //     byte startChannel,
+        //     byte endChannel,
+        //     byte pipeId
+        // );
+        // byte searchChannel(byte key);
 
-        bool isScanning();
+        // bool isScanning();
         bool isError();
         bool isConnected();
 
@@ -61,7 +61,7 @@ class RF24Service: public RF24 {
         byte fails();
 
         bool waitForConnection(byte key);
-        bool connectToSearchedChannel(byte key);
+        // bool connectToSearchedChannel(byte key);
 
         /**
          * @brief Wrapper over `write`. Same functionality,
@@ -81,7 +81,7 @@ class RF24Service: public RF24 {
          * @param buf 
          * @param len 
          */
-        void get(void* buf, byte len);
+        // void get(void* buf, byte len);
 
         /**
          * @brief Time from write til got acknoledge.
@@ -97,13 +97,13 @@ class RF24Service: public RF24 {
          * 
          * @return unsigned long 
          */
-        unsigned long lastRequestTimeDiff();
+        // unsigned long lastRequestTimeDiff();
 
         /**
          * @brief Set current micros() to _lastRequestTime
          *
          */
-        void updateLastRequestTime();
+        // void updateLastRequestTime();
 
     private:
         byte _CE_PIN;
@@ -113,8 +113,8 @@ class RF24Service: public RF24 {
         bool _isError = false;
         bool _isConnected = false;
         byte _failCounter = 0;
-        unsigned long _responseTime[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        unsigned long _lastRequestTime = 0;
+        unsigned long _responseTime[10] = { 0, 0, 0 };
+        // unsigned long _lastRequestTime = 0;
         byte _address[6][6] = { "1Node", "2Node", "3Node", "4Node", "5Node", "6Node" };
 };
 
